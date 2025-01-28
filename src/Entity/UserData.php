@@ -5,7 +5,6 @@ namespace App\Entity;
 use App\Repository\UserDataRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: UserDataRepository::class)]
 class UserData
 {
     #[ORM\Id]

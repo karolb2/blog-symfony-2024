@@ -6,6 +6,7 @@ use App\Entity\Application;
 use App\Form\ApplicationType;
 use App\Formatter\ApiResponseFormatter;
 use App\Repository\ApplicationRepository;
+use App\Service\TransformDataProvider;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -16,7 +17,9 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[Route('/api/applications')]
 final class ApplicationController extends AbstractController
 {
-    public function __construct(private readonly ApiResponseFormatter $apiResponseFormatter)
+    public function __construct(
+        private readonly ApiResponseFormatter $apiResponseFormatter,
+        private TransformDataProvider $transformDataProvider)
     {
     }
 
@@ -29,10 +32,7 @@ final class ApplicationController extends AbstractController
     {
         $application = $applicationRepository->findAll();
 
-        $applicationList = [];
-        foreach ($application as $key => $value) {
-            $applicationList[] = $value->toArray();
-        }
+        $applicationList = $this->transformDataProvider->transformDataForApplications($application);
 
         return $this->apiResponseFormatter
             ->withData($applicationList)
@@ -57,7 +57,8 @@ final class ApplicationController extends AbstractController
 
         $application = new Application();
         $application->setName($data['name']);
-        $application->setDescription($data['description']);;
+        $application->setDescription($data['description']);
+        $application->setCreated(new \DateTime());
         $entityManager->persist($application);
         $entityManager->flush();
 
